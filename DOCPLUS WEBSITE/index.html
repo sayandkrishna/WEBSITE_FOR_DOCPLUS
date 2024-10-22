@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <style>
+        /* Logo and Card Styles */
+        .header-logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+        .card-image-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        .card-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease, opacity 0.4s ease;
+        }
+        .card-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 2;
+            color: white;
+        }
+        .card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0);
+            transition: background-color 0.4s ease;
+            z-index: 1;
+        }
+        .card-image-container:hover img {
+            transform: scale(1.05) translateY(-5px);
+            opacity: 0.7;
+        }
+        .card-image-container:hover .card-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .detect-button {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .detect-button:hover {
+            background-color: #555;
+            transform: translateY(-4px);
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-white font-roboto">
+    <!-- Header -->
+    <header class="flex items-center justify-between p-4 shadow-md">
+        <div class="flex items-center">
+            <img src="path_to_your_logo/logo.png" alt="Logo" class="header-logo">
+            <h1 class="text-xl font-bold">Disease Detection</h1>
+        </div>
+        <nav class="flex items-center space-x-6">
+            <a class="text-gray-700 hover:text-black" href="#">Home</a>
+            <a class="text-gray-700 hover:text-black" href="#">Symptoms</a>
+            <a class="text-gray-700 hover:text-black" href="#">Prevention</a>
+            <a class="text-gray-700 hover:text-black" href="#">Treatment</a>
+            <a class="text-gray-700 hover:text-black" href="#">Contact</a>
+            <a class="text-gray-700 hover:text-black" href="#" id="loginButton">
+                <i class="fas fa-user-circle"></i> Login
+            </a>
+        </nav>
+    </header>
+
+    <!-- Main Section -->
+    <main class="text-center mt-12">
+        <h2 class="text-3xl font-light">How can we help you today?</h2>
+        <div class="flex justify-center mt-8 space-x-4">
+            <!-- Alzheimer's Card -->
+            <div class="relative w-64 h-96 bg-gray-200 rounded-lg overflow-hidden card-image-container">
+                <img alt="Alzheimer's Disease" class="w-full h-full object-cover" src="path_to_images/alzheimers_image.jpg"/>
+                <div class="card-overlay"></div>
+                <div class="card-content">
+                    <h3 class="text-xl font-medium">Alzheimer's Disease</h3>
+                    <p class="text-sm">Stage Detection Using MRI</p>
+                    <a href="https://docplus-regr99mucv3grfqyutkuzh.streamlit.app/">
+                        <button class="mt-10 px-4 py-2 border border-white text-white rounded detect-button">Detect Now</button>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chest Scan Card -->
+            <div class="relative w-64 h-96 bg-gray-200 rounded-lg overflow-hidden card-image-container">
+                <img alt="Chest Scan Detection" class="w-full h-full object-cover" src="path_to_images/chest_scan_image.jpg"/>
+                <div class="card-overlay"></div>
+                <div class="card-content">
+                    <h3 class="text-xl font-medium">Chest Scan Detection</h3>
+                    <p class="text-sm">Detect abnormalities in CT scans</p>
+                    <a href="https://docpluslungcancer.streamlit.app/">
+                        <button class="mt-10 px-4 py-2 border border-white text-white rounded detect-button">Detect Now</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Login Info -->
+        <div id="userDetails" class="hidden">
+            <h2 class="text-3xl font-light">Welcome, <span id="userName"></span>!</h2>
+            <img id="userPhoto" alt="User Photo" class="mx-auto rounded-full mt-4 w-24 h-24">
+            <button id="logoutButton" class="mt-6 bg-red-500 text-white px-4 py-2 rounded">Logout</button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h2 class="text-3xl font-light">Login to Access Disease Detection</h2>
+            <button id="googleLoginButton" class="mt-10 bg-blue-500 text-white px-4 py-2 rounded">
+                <i class="fab fa-google"></i> Login with Google
+            </button>
+        </div>
+    </main>
+
+    <!-- Firebase SDK Initialization -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-analytics.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvWLgjAbY2ORRyrCUujKyUXxIyxoN2pEY",
+            authDomain: "docplus-dfcc4.firebaseapp.com",
+            projectId: "docplus-dfcc4",
+            storageBucket: "docplus-dfcc4.appspot.com",
+            messagingSenderId: "43290903170",
+            appId: "1:43290903170:web:f94edb264da6983364aa9b",
+            measurementId: "G-HDNJRHYQJ7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const auth = getAuth();
+
+        // Get DOM elements
+        const loginButton = document.getElementById('googleLoginButton');
+        const logoutButton = document.getElementById('logoutButton');
+        const userDetails = document.getElementById('userDetails');
+        const userName = document.getElementById('userName');
+        const userPhoto = document.getElementById('userPhoto');
+        const loginForm = document.getElementById('loginForm');
+
+        // Google Sign-in
+        loginButton.addEventListener('click', () => {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider).then((result) => {
+                const user = result.user;
+                displayUserInfo(user);
+            }).catch((error) => {
+                console.error("Error during sign-in:", error);
+            });
+        });
+
+        // Logout
+        logoutButton.addEventListener('click', () => {
+            signOut(auth).then(() => {
+                userDetails.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            }).catch((error) => {
+                console.error("Error during sign-out:", error);
+            });
+        });
+
+        // Display user information
+        function displayUserInfo(user) {
+            userName.textContent = user.displayName;
+            userPhoto.src = user.photoURL;
+            userDetails.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        }
+
+        // Check auth state on page load
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                displayUserInfo(user);
+            }
+        });
+    </script>
+
+</body>
+</html>
